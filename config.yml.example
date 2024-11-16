@@ -1,0 +1,9 @@
+accounts:
+  - email: example@example.com
+    password: abc-123
+  - email: anotherexample@example.com
+    password: 123-abc
+lists:
+  - email: example@example.com
+    password: abc-123
+    uri: at://did:plc:example/app.bsky.graph.list/example
