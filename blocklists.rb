@@ -15,27 +15,31 @@ if yaml_data['accounts'] && yaml_data['lists']
     begin
       # Initialize a Bluesky instance
       bluesky = Bluesky.new(email: email, password: password)
-      puts "Getting blocks for #{email}\n\n"
 
+      puts "\nFetching accounts blocked by #{email}…"
       # Retrieve blocked accounts
       blocks = bluesky.get_blocks
+
+      puts "#{email} is blocking #{blocks.size} accounts."
+      next if blocks.empty?
 
       # Add each blocked account to each list
       yaml_data['lists'].each do |list|
         list_uri = list['uri']
-
-        blocks.map { |block| block["did"] }.each do |blocked_did|
+        puts "Adding #{blocks.size} accounts to list #{list_uri}…"
+        blocks.each do |block|
+          did = block["did"]
+          handle = block["handle"]
           begin
-            bluesky.add_user_to_list(blocked_did, list_uri)
-            puts "Added DID #{blocked_did} to list #{list_uri}"
+            bluesky.add_user_to_list(did, list_uri)
+            puts " #{handle}"
           rescue StandardError => e
-            puts "Failed to add DID #{blocked_did} to list #{list_uri}: #{e.message}"
+            puts " [ERROR] Failed to add #{handle} to list #{list_uri}: #{e.message}"
           end
           begin
-            bluesky.unblock(blocked_did)
-            puts "  Unblocked #{blocked_did}"
+            bluesky.unblock(did)
           rescue StandardError => e
-            puts "Failed to unblock DID #{blocked_did}: #{e.message}"
+            puts " [ERROR] Failed to unblock #{handle}: #{e.message}"
           end
         end
       end
