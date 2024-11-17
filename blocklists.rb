@@ -25,16 +25,16 @@ if yaml_data['accounts'] && yaml_data['lists']
 
       # Add each blocked account to each list
       yaml_data['lists'].each do |list|
-        list_uri = list['uri']
-        puts "Adding #{blocks.size} accounts to list #{list_uri}…"
+        url = list['url']
+        puts "Adding #{blocks.size} accounts to #{url}"
         blocks.each do |block|
           did = block["did"]
           handle = block["handle"]
           begin
-            bluesky.add_user_to_list(did, list_uri)
+            bluesky.add_user_to_list(did, url)
             puts " #{handle}"
           rescue StandardError => e
-            puts " [ERROR] Failed to add #{handle} to list #{list_uri}: #{e.message}"
+            puts " [ERROR] Failed to add #{handle} to #{url}: #{e.message}"
           end
           begin
             bluesky.unblock(did)

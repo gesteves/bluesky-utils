@@ -6,4 +6,4 @@ accounts:
 lists:
   - email: example@example.com
     password: abc-123
-    uri: at://did:plc:example/app.bsky.graph.list/example
+    url: https://bsky.app/profile/example.bsky.social/lists/abc123

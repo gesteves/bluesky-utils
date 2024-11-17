@@ -63,14 +63,16 @@ class Bluesky
   # Adds a user to a specified list.
   #
   # @param did [String] the DID of the user to add.
-  # @param list_uri [String] the URI of the list.
+  # @param url [String] the public URL of the list.
   # @return [Boolean] true if the user was successfully added.
   # @raise [RuntimeError] if the request to add the user fails.
-  def add_user_to_list(did, list_uri)
+  def add_user_to_list(did, url)
+    uri = "at://#{@did}/app.bsky.graph.list/#{url.split("/").last}"
+
     record = {
       "$type" => "app.bsky.graph.listitem",
       "subject" => did,
-      "list" => list_uri,
+      "list" => uri,
       "createdAt" => Time.now.utc.iso8601
     }
 
