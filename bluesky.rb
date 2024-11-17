@@ -48,45 +48,28 @@ class Bluesky
 
   # Unblocks a user for a specified DID.
   #
-  # @param unblock_did [String] the DID of the user to unblock.
+  # @param did [String] the DID of the user to unblock.
   # @return [Boolean] true if the block was successfully removed.
   # @raise [RuntimeError] if the request to remove the block fails.
-  def unblock(unblock_did)
-    profile = get_profile(unblock_did)
+  def unblock(did)
+    profile = get_profile(did)
     blocking_uri = profile.dig("viewer", "blocking")
 
     return unless blocking_uri
 
-    rkey = blocking_uri.split("/").last
-
-    body = {
-      "repo" => @did,
-      "rkey" => rkey,
-      "collection" => "app.bsky.graph.block"
-    }
-
-    response = HTTParty.post(
-      "#{@base_url}/xrpc/com.atproto.repo.deleteRecord",
-      body: body.to_json,
-      headers: {
-        "Authorization" => "Bearer #{@access_token}",
-        "Content-Type" => "application/json"
-      }
-    )
-
-    raise "Unable to remove block for DID #{unblock_did}: #{response.body}" unless response.success?
+    delete_record(blocking_uri)
   end
 
   # Adds a user to a specified list.
   #
-  # @param user_did [String] the DID of the user to add.
+  # @param did [String] the DID of the user to add.
   # @param list_uri [String] the URI of the list.
   # @return [Boolean] true if the user was successfully added.
   # @raise [RuntimeError] if the request to add the user fails.
-  def add_user_to_list(user_did, list_uri)
+  def add_user_to_list(did, list_uri)
     record = {
       "$type" => "app.bsky.graph.listitem",
-      "subject" => user_did,
+      "subject" => did,
       "list" => list_uri,
       "createdAt" => Time.now.utc.iso8601
     }
@@ -111,20 +94,20 @@ class Bluesky
 
   # Retrieves profile data for a given DID.
   #
-  # @param profile_did [String] the DID of the profile to retrieve.
+  # @param did [String] the DID of the profile to retrieve.
   # @return [Hash] the profile data.
   # @raise [RuntimeError] if the request to get the profile fails.
-  def get_profile(profile_did)
+  def get_profile(did)
     response = HTTParty.get(
       "#{@base_url}/xrpc/app.bsky.actor.getProfile",
       headers: { "Authorization" => "Bearer #{@access_token}" },
-      query: { "actor" => profile_did }
+      query: { "actor" => did }
     )
 
     if response.success?
       JSON.parse(response.body)
     else
-      raise "Unable to retrieve profile for DID #{profile_did}: #{response.body}"
+      raise "Unable to retrieve profile for DID #{did}: #{response.body}"
     end
   end
 
@@ -146,5 +129,32 @@ class Bluesky
     else
       raise "Unable to create a new session."
     end
+  end
+
+  # Deletes a record given its at-uri.
+  #
+  # @param at_uri [String] the at-uri of the record to delete.
+  # @raise [RuntimeError] if the request to delete the record fails.
+  def delete_record(at_uri)
+    segments = at_uri.split("/")
+    rkey = segments.last
+    collection = segments[-2]
+
+    body = {
+      "repo" => @did,
+      "rkey" => rkey,
+      "collection" => collection
+    }
+
+    response = HTTParty.post(
+      "#{@base_url}/xrpc/com.atproto.repo.deleteRecord",
+      body: body.to_json,
+      headers: {
+        "Authorization" => "Bearer #{@access_token}",
+        "Content-Type" => "application/json"
+      }
+    )
+
+    raise "Unable to delete record at #{at_uri}: #{response.body}" unless response.success?
   end
 end
