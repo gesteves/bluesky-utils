@@ -34,14 +34,14 @@ if yaml_data['accounts'] && yaml_data['lists']
           handle = block["handle"]
           begin
             list_owner.add_user_to_list(did, url)
-            puts " #{handle}"
+            puts " #{handle} (#{did})"
           rescue StandardError => e
-            puts " [ERROR] Failed to add #{handle} to #{url}: #{e.message}"
+            puts " [ERROR] Failed to add #{handle} (#{did}) to #{url}: #{e.message}"
           end
           begin
             bluesky.unblock(did)
           rescue StandardError => e
-            puts " [ERROR] Failed to unblock #{handle}: #{e.message}"
+            puts " [ERROR] Failed to unblock #{handle} (#{did}): #{e.message}"
           end
         end
       end
