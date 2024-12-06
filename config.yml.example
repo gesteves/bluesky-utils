@@ -1,9 +1,10 @@
 accounts:
-  - email: example@example.com
+  example:
+    email: example@example.com
     password: abc-123
-  - email: anotherexample@example.com
+  anotherexample:
+    email: anotherexample@example.com
     password: 123-abc
 lists:
-  - email: example@example.com
-    password: abc-123
+  - account: example
     url: https://bsky.app/profile/example.bsky.social/lists/abc123
