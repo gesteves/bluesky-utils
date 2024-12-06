@@ -48,7 +48,6 @@ if yaml_data['accounts'] && yaml_data['lists']
             end
             begin
               bluesky.unblock(did)
-              puts " #{handle} (#{did}) unblocked."
             rescue StandardError => e
               puts " [ERROR] Failed to unblock #{handle} (#{did}): #{e.message}"
             end

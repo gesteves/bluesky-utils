@@ -88,6 +88,40 @@ class Bluesky
     end
   end
 
+  # Adds a user to a specified list.
+  #
+  # @param did [String] the DID of the user to add.
+  # @param url [String] the public URL of the list.
+  # @return [Boolean] true if the user was successfully added.
+  # @raise [RuntimeError] if the request to add the user fails.
+  def add_user_to_list(did, url)
+    uri = "at://#{@did}/app.bsky.graph.list/#{url.split("/").last}"
+
+    record = {
+      "$type" => "app.bsky.graph.listitem",
+      "subject" => did,
+      "list" => uri,
+      "createdAt" => Time.now.utc.iso8601
+    }
+
+    body = {
+      "repo" => @did,
+      "collection" => "app.bsky.graph.listitem",
+      "record" => record
+    }
+
+    response = HTTParty.post(
+      "#{BASE_URL}/xrpc/com.atproto.repo.createRecord",
+      body: body.to_json,
+      headers: {
+        "Authorization" => "Bearer #{@access_token}",
+        "Content-Type" => "application/json"
+      }
+    )
+
+    raise "Unable to add user to list: #{response.body}" unless response.success?
+  end
+
   # Retrieves profile data for a given DID.
   #
   # @param did [String] the DID of the profile to retrieve.
