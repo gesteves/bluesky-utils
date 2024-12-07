@@ -19,11 +19,11 @@ if yaml_data['accounts'] && yaml_data['lists']
       # Initialize a Bluesky instance
       bluesky = Bluesky.new(email: email, password: password)
 
-      puts "\nFetching accounts blocked by #{name} (#{email})…"
+      puts "\nFetching accounts blocked by @#{name}…"
       # Retrieve blocked accounts
       blocks = bluesky.get_blocks
 
-      puts "#{name} is blocking #{blocks.size} accounts."
+      puts "@#{name} is blocking #{blocks.size} accounts."
       next if blocks.empty?
 
       # Add each blocked account to each list
@@ -36,13 +36,13 @@ if yaml_data['accounts'] && yaml_data['lists']
           list_password = accounts[list_account_name]['password']
           list_owner = Bluesky.new(email: list_email, password: list_password)
 
-          puts "Adding #{blocks.size} accounts to #{url} (owned by #{list_account_name})"
+          puts "Adding to #{url}"
           blocks.each do |block|
             did = block["did"]
             handle = block["handle"]
             begin
               list_owner.add_user_to_list(did, url)
-              puts " #{handle} (#{did}) added to list."
+              puts " @#{handle}"
             rescue StandardError => e
               puts " [ERROR] Failed to add #{handle} (#{did}) to #{url}: #{e.message}"
             end
