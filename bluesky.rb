@@ -140,6 +140,46 @@ class Bluesky
     end
   end
 
+  # Retrieves the user's preferences.
+  #
+  # @return [Hash] the user's preferences.
+  def get_preferences
+    response = HTTParty.get(
+      "#{BASE_URL}/xrpc/app.bsky.actor.getPreferences",
+      headers: { "Authorization" => "Bearer #{@access_token}" }
+    )
+
+    if response.success?
+      JSON.parse(response.body)
+    else
+      raise "Unable to retrieve preferences: #{response.body}"
+    end
+  end
+
+  # Sets the user's preferences.
+  #
+  # @param preferences [Hash] the preferences to set.
+  def set_preferences(preferences)
+    headers = {
+      "Authorization" => "Bearer #{@access_token}",
+      "Content-Type" => "application/json"
+    }
+
+    body = { "preferences" => preferences }
+
+    response = HTTParty.post(
+      "#{BASE_URL}/xrpc/app.bsky.actor.putPreferences",
+      body: body.to_json,
+      headers: headers
+    )
+
+    if response.success?
+      true
+    else
+      raise "Failed to save preferences: #{response.body}"
+    end
+  end
+
   private
 
   # Creates a new session with the Bluesky API.
