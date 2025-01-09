@@ -29,12 +29,12 @@ if yaml_data['accounts'] && yaml_data['lists']
     end
   end
 
-  preferences = []
-  preferences << {
+  new_preferences = []
+  new_preferences << {
     "$type": "app.bsky.actor.defs#mutedWordsPref",
     items: muted_words.uniq { |word| [word["value"], word["targets"], word["actorTarget"]] }
   }
-  preferences << { "$type": "app.bsky.actor.defs#labelersPref", labelers: labelers.uniq }
+  new_preferences << { "$type": "app.bsky.actor.defs#labelersPref", labelers: labelers.uniq }
 
   accounts.each do |name, account|
     email = account['email']
@@ -43,7 +43,8 @@ if yaml_data['accounts'] && yaml_data['lists']
     begin
       # Initialize a Bluesky instance
       bluesky = Bluesky.new(email: email, password: password)
-
+      preferences = bluesky.get_preferences["preferences"]
+      preferences = preferences.reject { |p| ["app.bsky.actor.defs#mutedWordsPref", "app.bsky.actor.defs#labelersPref"].include?(p["$type"]) } + new_preferences
       puts "Saving preferences for @#{name}…"
       bluesky.set_preferences(preferences)
 
