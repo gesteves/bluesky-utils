@@ -6,10 +6,9 @@ require_relative 'bluesky'
 # Load the YAML file
 yaml_data = YAML.load_file('config.yml')
 
-# Collect all blocked accounts and add them to each list
-if yaml_data['accounts'] && yaml_data['lists']
+if yaml_data['accounts']
   accounts = yaml_data['accounts']
-  lists = yaml_data['lists']
+  all_lists = []
 
   accounts.each do |name, account|
     email = account['email']
@@ -18,43 +17,31 @@ if yaml_data['accounts'] && yaml_data['lists']
     begin
       # Initialize a Bluesky instance
       bluesky = Bluesky.new(email: email, password: password)
+      puts "\nFetching moderation lists for @#{name}…"
+      lists = bluesky.get_list_blocks["lists"] || []
+      all_lists += lists
 
-      puts "\nFetching accounts blocked by @#{name}…"
-      # Retrieve blocked accounts
-      blocks = bluesky.get_blocks
+    rescue StandardError => e
+      puts "Failed to process account #{name} (#{email}): #{e.message}"
+    end
+  end
 
-      puts "@#{name} is blocking #{blocks.size} accounts."
-      next if blocks.empty?
+  all_lists = all_lists.uniq { |list| list["uri"] }
 
-      # Add each blocked account to each list
-      lists.each do |list|
-        list_account_name = list['account']
-        url = list['url']
+  accounts.each do |name, account|
+    email = account['email']
+    password = account['password']
 
-        if accounts[list_account_name]
-          list_email = accounts[list_account_name]['email']
-          list_password = accounts[list_account_name]['password']
-          list_owner = Bluesky.new(email: list_email, password: list_password)
-
-          puts "Adding to #{url}"
-          blocks.each do |block|
-            did = block["did"]
-            handle = block["handle"]
-            begin
-              list_owner.add_user_to_list(did, url)
-              puts " @#{handle}"
-            rescue StandardError => e
-              puts " [ERROR] Failed to add #{handle} (#{did}) to #{url}: #{e.message}"
-            end
-            begin
-              bluesky.unblock(did)
-            rescue StandardError => e
-              puts " [ERROR] Failed to unblock #{handle} (#{did}): #{e.message}"
-            end
-          end
-        else
-          puts " [ERROR] List owner account '#{list_account_name}' not found in accounts."
-        end
+    begin
+      puts "\nBlocking lists for @#{name}…"
+      # Initialize a Bluesky instance
+      bluesky = Bluesky.new(email: email, password: password)
+      lists = bluesky.get_list_blocks["lists"] || []
+      unsubscribed_lists = all_lists.reject { |list| lists.any? { |l| l["uri"] == list["uri"] } }
+      puts " No new lists to block." if unsubscribed_lists.empty?
+      unsubscribed_lists.each do |list|
+        puts " #{list["name"]}"
+        bluesky.block_list(list["uri"])
       end
 
     rescue StandardError => e
@@ -64,3 +51,4 @@ if yaml_data['accounts'] && yaml_data['lists']
 else
   puts 'No accounts or lists found in the YAML file.'
 end
+
