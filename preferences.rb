@@ -7,7 +7,7 @@ require_relative 'bluesky'
 yaml_data = YAML.load_file('config.yml')
 
 # Collect all blocked accounts and add them to each list
-if yaml_data['accounts'] && yaml_data['lists']
+if yaml_data['accounts']
   accounts = yaml_data['accounts']
   muted_words = []
   labelers = []
