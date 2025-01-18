@@ -19,6 +19,7 @@ if yaml_data['accounts']
       bluesky = Bluesky.new(email: email, password: password)
       puts "\nFetching moderation lists for @#{name}…"
       lists = bluesky.get_list_blocks["lists"] || []
+      puts "@#{name} is blocking #{lists.size} lists."
       all_lists += lists
 
     rescue StandardError => e
