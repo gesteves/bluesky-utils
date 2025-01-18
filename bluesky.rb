@@ -156,6 +156,42 @@ class Bluesky
     end
   end
 
+  # Get mod lists that the requesting account (actor) is blocking.
+  # @param limit [Integer] The maximum number of blocks to return.
+  # @param cursor [String] The cursor to use for pagination.
+  # @return [Hash] The response data from the API.
+  def get_list_blocks(limit: 100, cursor: nil)
+    response = HTTParty.get(
+      "#{BASE_URL}/xrpc/app.bsky.graph.getListBlocks",
+      headers: { "Authorization" => "Bearer #{@access_token}" },
+      query: { limit: limit, cursor: cursor }.compact
+    )
+
+    if response.success?
+      JSON.parse(response.body)
+    else
+      raise "Unable to retrieve preferences: #{response.body}"
+    end
+  end
+
+  # Blocks a list.
+  #
+  # @param list_uri [String] the URI of the list to block.
+  def block_list(list_uri)
+    record_data = {
+      "$type" => "app.bsky.graph.listblock",
+      "subject" => list_uri,
+      "createdAt" => Time.now.utc.iso8601
+    }
+
+    record = {
+      repo: @did,
+      collection: "app.bsky.graph.listblock",
+      record: record_data
+    }
+    create_record(record)
+  end
+
   # Sets the user's preferences.
   #
   # @param preferences [Hash] the preferences to set.

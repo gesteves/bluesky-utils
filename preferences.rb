@@ -6,7 +6,6 @@ require_relative 'bluesky'
 # Load the YAML file
 yaml_data = YAML.load_file('config.yml')
 
-# Collect all blocked accounts and add them to each list
 if yaml_data['accounts']
   accounts = yaml_data['accounts']
   muted_words = []
@@ -45,7 +44,7 @@ if yaml_data['accounts']
       bluesky = Bluesky.new(email: email, password: password)
       preferences = bluesky.get_preferences["preferences"]
       preferences = preferences.reject { |p| ["app.bsky.actor.defs#mutedWordsPref", "app.bsky.actor.defs#labelersPref"].include?(p["$type"]) } + new_preferences
-      puts "Saving preferences for @#{name}…"
+      puts "\nSaving preferences for @#{name}…"
       bluesky.set_preferences(preferences)
 
     rescue StandardError => e
