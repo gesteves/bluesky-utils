@@ -18,7 +18,7 @@ if yaml_data['accounts']
       # Initialize a Bluesky instance
       bluesky = Bluesky.new(email: email, password: password)
       puts "\nFetching moderation lists for @#{name}…"
-      lists = bluesky.get_list_blocks["lists"] || []
+      lists = bluesky.get_list_blocks["lists"]&.uniq { |list| list["uri"] } || []
       puts "@#{name} is blocking #{lists.size} lists."
       all_lists += lists
 
@@ -38,9 +38,9 @@ if yaml_data['accounts']
       # Initialize a Bluesky instance
       bluesky = Bluesky.new(email: email, password: password)
       lists = bluesky.get_list_blocks["lists"] || []
-      unsubscribed_lists = all_lists.reject { |list| lists.any? { |l| l["uri"] == list["uri"] } }
-      puts " No new lists to block." if unsubscribed_lists.empty?
-      unsubscribed_lists.each do |list|
+      new_lists = all_lists.reject { |list| lists.any? { |l| l["uri"] == list["uri"] } }
+      puts " No new lists to block." if new_lists.empty?
+      new_lists.each do |list|
         puts " #{list["name"]}"
         bluesky.block_list(list["uri"])
       end
